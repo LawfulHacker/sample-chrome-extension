@@ -1,0 +1,21 @@
+{
+  "title": "Bookmark schema",
+  "description": "Describes a bookmark",
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "primary": true
+    },
+    "title": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "uniqueItems": true,
+      "item": {
+        "type": "string"
+      }
+    }
+  }
+}

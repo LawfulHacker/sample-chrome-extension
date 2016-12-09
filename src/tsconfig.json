@@ -11,6 +11,9 @@
     "outDir": "../dist/out-tsc",
     "sourceMap": true,
     "target": "es5",
+    "files": [
+      "../typings/main.d.ts"
+    ],
     "typeRoots": [
       "../node_modules/@types"
     ]

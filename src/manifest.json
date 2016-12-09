@@ -1,0 +1,29 @@
+{
+  "name": "Chrome Extension App",
+  "version": "0.0.1",
+  "description": "Add Bookmark.",
+  "icons": {
+    "128": "assets/icon.png"
+  },
+  "background": {
+    "scripts": [
+      "inline.bundle.js",
+      "main.bundle.js",
+      "scripts.bundle.js"
+    ]
+  },
+  "permissions": [
+    "tabs",
+    "bookmarks"
+  ],
+  "chrome_url_overrides" : {
+    "newtab": "index.html"
+  },
+  "browser_action": {
+    "default_icon": "assets/bookmark_off.png",
+    "default_title": "Bookmark this",
+    "default_popup": "index.html"
+  },
+  "manifest_version": 2,
+  "content_security_policy": "default-src 'none'; script-src 'self' 'unsafe-eval'; img-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; connect-src 'self'"
+}
