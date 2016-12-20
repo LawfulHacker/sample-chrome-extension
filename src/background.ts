@@ -47,7 +47,7 @@ chrome.runtime.onInstalled.addListener(function () {
     node.forEach(b => {
       if (b.url) {
         promise = promise.then(() => new Promise((resolve, reject) => {
-          getParentTitles(b.parentId, titles => bookmarkService.add(new Bookmark(b.url, b.title, titles)).then(function () {
+          getParentTitles(b.parentId, tags => bookmarkService.add(new Bookmark(b.url, b.title, tags)).then(function () {
             resolve();
           }));
         }));

@@ -29,7 +29,7 @@ export class DatabaseService {
         .addColumn('id', lf.Type.STRING)
         .addColumn('url', lf.Type.STRING)
         .addColumn('title', lf.Type.STRING)
-        .addIndex('UK_Bookmark_url', ['url'], true)
+        .addIndex('UK_Bookmark_url', ['url'], false)
         .addPrimaryKey(['id']);
     ds.createTable('Tag')
         .addColumn('id', lf.Type.STRING)
