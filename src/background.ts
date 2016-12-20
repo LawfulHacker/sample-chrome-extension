@@ -42,10 +42,15 @@ function getParentTitles(id: string, callback: Function, titles: Array<string> =
 }
 
 chrome.runtime.onInstalled.addListener(function () {
+  let promise = Promise.resolve();
   chrome.bookmarks.search({}, function (node) {
     node.forEach(b => {
       if (b.url) {
-        getParentTitles(b.parentId, titles => bookmarkService.add(new Bookmark(b.url, b.title, titles)));
+        promise = promise.then(() => new Promise((resolve, reject) => {
+          getParentTitles(b.parentId, titles => bookmarkService.add(new Bookmark(b.url, b.title, titles)).then(function () {
+            resolve();
+          }));
+        }));
       }
     });
   });

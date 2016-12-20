@@ -1,23 +1,11 @@
+import { UUID } from 'angular2-uuid';
+
 export class Bookmark {
-  url: string;
-  title: string;
-  tags: Array<string>;
-
-  static fromDoc(doc): Bookmark {
-    const bookmark = new Bookmark(
-      doc.get('url'),
-      doc.get('title'),
-      doc.get('tags')
-    );
-    return bookmark;
-  }
-
+  public id: string;
   constructor(
-    url: string,
-    title: string,
-    tags: Array<string>) {
-    this.url = url;
-    this.title = title;
-    this.tags = tags;
+    public url: string,
+    public title: string,
+    public tags: Array<string>) {
+    this.id = UUID.UUID();
   }
 }

@@ -1,37 +1,53 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-
-import * as RxDB from 'rxdb';
-import { RxDatabase } from 'rxdb';
+// import { Observable } from 'rxjs';
+import * as lf from 'lovefield';
 
 @Injectable()
 export class DatabaseService {
-  static db$: Observable<RxDatabase>;
-  static initialize() {
-    RxDB.plugin(require('pouchdb-adapter-idb'));
-    let collections = [
-      {
-        name: 'bookmark',
-        schema: RxDB.RxSchema.create(require('./bookmark.schema.json')),
-        dbCol: null
-      }
-    ];
-    let database = RxDB.create('bookmarkDB', 'idb', null, true)
-      .then(db => {
-        window['db'] = db; // write to window for debugging
-        const fns = collections.map(col => db.collection(col.name, col.schema));
-        return Promise.all(fns)
-          .then((cols) => {
-            collections.map(col => col.dbCol = cols.shift());
-            return db;
-          });
-      });
-     DatabaseService.db$ = Observable.fromPromise(<Promise<RxDatabase>>database);
+  private _db: Promise<lf.Database>;
+
+  constructor() {
+    window['lf'] = lf;
+    window['mdb'] = this;
+    this._db = this.buildSchema();
   }
 
-  get(): Promise<RxDatabase> {
-    return DatabaseService.db$.toPromise();
+  getDatabase(): Promise<lf.Database> {
+    return this._db;
+  }
+
+  buildSchema(): Promise<lf.Database> {
+    let builder = this.getSchemaBuilder();
+    return builder.connect({
+      storeType: lf.schema.DataStoreType.INDEXED_DB
+    });
+  }
+
+  getSchemaBuilder(): lf.schema.Builder {
+    let ds = lf.schema.create('bookmarksdb', 1);
+    ds.createTable('Bookmark')
+        .addColumn('id', lf.Type.STRING)
+        .addColumn('url', lf.Type.STRING)
+        .addColumn('title', lf.Type.STRING)
+        .addIndex('UK_Bookmark_url', ['url'], true)
+        .addPrimaryKey(['id']);
+    ds.createTable('Tag')
+        .addColumn('id', lf.Type.STRING)
+        .addColumn('name', lf.Type.STRING)
+        .addIndex('UK_Tag_name', ['name'], true)
+        .addPrimaryKey(['id']);
+    ds.createTable('BookmarkTag')
+        .addColumn('tagId', lf.Type.STRING)
+        .addColumn('bookmarkId', lf.Type.STRING)
+        .addIndex('UK_BookmarkTag', ['tagId', 'bookmarkId'], true)
+        .addForeignKey('FK_TagId', <lf.schema.RawForeignKeySpec> {
+          local: 'tagId',
+          ref: 'Tag.id'
+        })
+        .addForeignKey('FK_BookmarkId', <lf.schema.RawForeignKeySpec> {
+          local: 'bookmarkId',
+          ref: 'Bookmark.id'
+        });
+    return ds;
   }
 }
-
-DatabaseService.initialize();
