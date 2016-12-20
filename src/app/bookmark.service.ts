@@ -10,45 +10,36 @@ export class BookmarkService {
   constructor(private database: DatabaseService) {
   }
 
-  add(bookmark: Bookmark): Promise<Bookmark> {
-    return this.database.getDatabase()
-      .then(db => {
-        window['db'] = db;
-        let schema = db.getSchema();
-        let bookmarkSchema = <any> schema.table('Bookmark');
-        let bookmarkTagSchema = <any> schema.table('BookmarkTag');
-        let tagSchema = <any> schema.table('Tag');
+  async add(bookmark: Bookmark): Promise<Bookmark> {
+    let db = await this.database.getDatabase();
+    window['db'] = db;
+    let schema = db.getSchema();
+    let bookmarkSchema = <any> schema.table('Bookmark');
+    let bookmarkTagSchema = <any> schema.table('BookmarkTag');
+    let tagSchema = <any> schema.table('Tag');
 
-        let row = bookmarkSchema.createRow(bookmark);
-        return db.insert().into(bookmarkSchema).values([row]).exec()
-          .then(rows => rows[0]['id'])
-          .then(bookmarkId => {
-            let promise = Promise.resolve();
-            bookmark.tags.forEach(tag => {
-              promise = promise.then( () => db
-                .select(tagSchema.id).from(tagSchema).where(tagSchema.name.eq(tag)).exec()
-                .then(rows => {
-                  if (rows.length > 0) {
-                    return rows[0]['id'];
-                  }
-                  return db.insert().into(tagSchema).values([tagSchema.createRow({ id: UUID.UUID(), name: tag })]).exec()
-                    .then(insertedRows => insertedRows[0]['id']);
-                })
-                .then(tagId => db
-                  .insert().into(bookmarkTagSchema)
-                  .values([
-                    bookmarkTagSchema.createRow({
-                      bookmarkId: bookmarkId,
-                      tagId: tagId
-                    })
-                  ])
-                  .exec()
-                )
-              );
-            });
-            return promise;
-          });
-      });
+    let row = bookmarkSchema.createRow(bookmark);
+    let rows = await db.insert().into(bookmarkSchema).values([row]).exec();
+    let bookmarkId = rows[0]['id'];
+    for (let tag of bookmark.tags) {
+      let tagRows = await db.select(tagSchema.id).from(tagSchema).where(tagSchema.name.eq(tag)).exec();
+      let tagId;
+      if (tagRows.length > 0) {
+        tagId = tagRows[0]['id'];
+      } else {
+        let insertedRows = await db.insert().into(tagSchema).values([tagSchema.createRow({ id: UUID.UUID(), name: tag })]).exec();
+        tagId = insertedRows[0]['id'];
+      }
+      await db.insert().into(bookmarkTagSchema)
+        .values([
+          bookmarkTagSchema.createRow({
+            bookmarkId: bookmarkId,
+            tagId: tagId
+          })
+        ])
+        .exec();
+    }
+    return bookmark;
   }
 }
 
